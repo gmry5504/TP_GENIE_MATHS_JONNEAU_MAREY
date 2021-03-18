@@ -1,0 +1,375 @@
+#modules
+import numpy as np
+import time
+from matplotlib import pyplot as plt
+import math
+
+print("-----------")
+print("L’algorithme de Gauss")
+print("-----------")
+print("\n")
+print("Question 1 :")
+print("\n")
+
+def ReductionGauss (Aaug) :
+    n,m = Aaug.shape    
+    for i in range (n-1):
+        if Aaug[i,i] == 0:
+            print("L'un des pivots est nul, on ne peut pas continuer avec la méthode de Gauss")
+            return
+        
+        else :
+            for k in range (i+1,n):
+                g = Aaug[k,i]/Aaug[i,i]
+                Aaug[k] = Aaug[k]-g*Aaug[i]
+    return(Aaug)
+
+#Aaug = np.array([[2, 5, 6], [4, 11, 9], [-2, -8, 7]]) #on prend une matrice quelconque afin de tester le programme
+#print("La matrice augmentée :")
+#print(Aaug)
+#print("La matrice triangulaire supérieure :")
+#print(ReductionGauss(Aaug))
+
+print("\n")
+print("Question 2 :")
+print("\n")
+
+def ResolutionSystTriSup(Taug):
+    n,m = Taug.shape
+    if m !=n+1:
+        print('pas une matrice augmentée')
+        return
+    X=np.zeros(n)
+    for i in range(n-1,-1,-1):
+        somme = 0
+        for k in range(i,n):
+            somme = somme + X[k]*Taug[i,k]
+        if Taug[i,i] == 0 :
+            X[i] = 0
+        else :
+            X[i]=(Taug[i,-1]-somme)/Taug[i,i]
+    return X
+
+#print(ResolutionSystTriSup(ReductionGauss(Aaug)))
+
+
+
+def ResolutionSystTriInf(Taug):
+    n,m = Taug.shape
+    if m!=n+1:
+        print('pas une matrice augmentée')
+        return
+    X=np.zeros(n)
+    for i in range(0,n,1):
+        somme = 0
+        for k in range(n):
+            somme = somme + X[k]*Taug[i,k]
+        if Taug[i,i] == 0 :
+            X[i] = 0
+        else :
+            X[i]=(Taug[i,-1]-somme)/Taug[i,i]
+    return X
+
+#print(ResolutionSystTriInf(ReductionGauss(Aaug)))
+
+
+
+print("\n")
+print("Question 3 :")
+print("\n")
+
+def Gauss(A,B):
+    Aaug = np.concatenate((A,B), axis=1)
+    print(Aaug)
+    Taug=ReductionGauss(Aaug)
+    X=ResolutionSystTriSup(Taug)
+    return X
+
+#A = np.array([[3, 2, -1, 4], [-3, -4, 4, -2], [6, 2, 2, 7], [9, 4, 2, 18]])    
+#B = np.array([[4, -5, -2, 13]])
+#B=B.T
+#print(Gauss(A,B))
+
+print("\n")
+print("-----------")
+print("Décomposition LU")
+print("-----------")
+print("Question 1 :")
+print("\n")
+
+def DecompositionLU(A):
+    n,m=np.shape(A)
+    U=np.copy(A)
+    L=np.eye(n) #retourne un ensemble de forme LxC où tous les élements sont égals à 0 sauf la diagonale où les élements sont = 1
+    for i in range(n-1):
+        for k in range(i+1,n):
+            pivot = U[i,i]
+
+            pivot = U[k,i]/pivot
+            L[k,i]=pivot
+            for j in range(i,n):
+                U[k,j]=U[k,j]-(pivot*U[i,j])
+    return L,U
+
+
+def ResolutionLU(A,B):
+    n,m = np.shape(A)
+    X=np.zeros(n)
+    L,U=DecompositionLU(A)
+    Y=ResolutionSystTriInf(np.concatenate((L,B),axis=1))
+    Y1=np.asarray(Y).reshape(n,1)
+    X=ResolutionSystTriSup(np.concatenate((U,Y1),axis=1))
+    return (X)
+
+
+#print("X=\n",ResolutionLU(A,B))
+
+
+print("\n")
+print("-----------")
+print("Variantes de l’algorithme de Gauss")
+print("-----------")
+print("\n")
+print("Question 1 :")
+print("\n")
+print("Gauss choix pivot partiel  :")
+print("\n")
+
+#A = np.array([[2, 5, 6], [4, 11, 9], [-2, -8, 7]])    
+#B = np.array([[7, 12, 3]])
+
+
+def ReductionGaussPartiel(Aaug) :
+    n,m=Aaug.shape
+
+    for k in range(m-1):
+        for i in range(k,n): 
+            if abs(Aaug[k,k]) <= abs(Aaug[i,k]):
+                K= np.copy(Aaug)
+                Aaug[k,:]=Aaug[i,:]
+                Aaug[i,:]=K[k,:]
+        for i in range (k+1,n):
+            gik=Aaug[i,k]/Aaug[k,k]
+            Aaug[i,:]=Aaug[i,:]-gik*Aaug[k,:]
+    return Aaug
+
+
+
+def GaussChoixPivotPartiel(A,B):
+    Aaug = np.concatenate((A, B.T), axis = 1)
+    Taug=ReductionGaussPartiel(Aaug)
+    X= ResolutionSystTriSup(Taug)
+    return (X)
+
+#A=GaussChoixPivotPartiel(A,B)
+#print("A=\n",A)
+
+
+
+print("\n")
+print("Question 2 :")
+print("\n")
+print("Gauss choix pivot total  :")
+print("\n")
+
+#A = np.array([[2, 5, 6], [4, 11, 9], [-2, -8, 7]])    
+#B = np.array([[7, 12, 3]])
+'''
+def ReductionGaussPivotTotal(Aaug):
+    n, m =  Aaug.shape
+    List_gik = []
+    list_colonne=[]
+    for i in range(0, n-1):
+        a = list(map(lambda x: x[i] != 0, Aaug))
+        if True in a:
+            
+            ligne=i
+            colonne=i
+            for j in range(i, n):
+                for k in range(i,n):
+                    if abs(Aaug[j][k])>abs(Aaug[ligne][colonne]):
+                        ligne=j
+                        colonne=k
+            L = list(Aaug[i])
+            Aaug[i]=Aaug[ligne]
+            Aaug[ligne] = L
+            
+            list_colonne.append((i,colonne))
+            
+            for l in range(0,n):
+                value= Aaug[l][i]
+                Aaug[l][i]=Aaug[l][colonne]
+                Aaug[l][colonne] = value
+            
+            
+            for m in range(i+1, n):
+                gik = Aaug[m][i] / Aaug[i][i]
+                List_gik.append(gik)
+                Aaug[m] = Aaug[m, :] - gik * Aaug[i, :]
+
+    return Aaug,list_colonne
+
+
+def GaussChoixPivotTotal(A,B):
+    Aaug = np.concatenate((A, B.T), axis = 1)
+    Taug = ReductionGaussPivotTotal(Aaug)
+    X = ResolutionSystTriSup(Taug)
+
+    return (X)
+
+
+#A=GaussChoixPivotTotal(A,B)
+#print("A=\n",A)
+
+#Nous sommes désolées, nous sommes trop nulles cette partie ne fonctionne pas...
+'''         
+     
+  
+#courbes temps
+print("\n")
+print("question 4")
+print("\n")
+
+temps = []
+indices = []
+tempslog = []
+indiceslog = []
+tempsLU = []
+indicesLU = []
+tempsLUlog = []
+indicesLUlog = []
+tempspivotpa = []
+indicespivotpa = []
+tempspivotpalog = []
+indicespivotpalog = []
+tempspivottot = []
+indicespivottot = []
+tempspivottotlog = []
+indicespivottotlog = []
+
+
+
+for n in range(50,500,50):
+        A = np.random.rand(n,n)
+        B = np.random.rand(n,1)
+        t1 = time.time()
+        X = Gauss(A,B)
+        t2 = time.time()
+        t_operation = t2 - t1
+        temps.append(t_operation)
+        indices.append(n)
+        indiceslog.append(math.log(n))
+        tempslog.append(math.log(t_operation))
+
+for n in range(50,500,50):
+        A = np.random.rand(n,n)
+        B = np.random.rand(n,1)
+        t3 = time.time()
+        X = ResolutionLU(A,B)
+        t4 = time.time()
+        t_operation = t4 - t3
+        tempsLU.append(t_operation)
+        indicesLU.append(n)
+        indicesLUlog.append(math.log(n))
+        tempsLUlog.append(math.log(t_operation))
+  
+for n in range(50,500,50):
+        A = np.random.rand(n,n)
+        B = np.random.rand(1,n)
+        t5 = time.time()
+        X = GaussChoixPivotPartiel(A,B)
+        t6 = time.time()
+        t_operation = t6 - t5
+        tempspivotpa.append(t_operation)
+        indicespivotpa.append(n)
+        indicespivotpalog.append(math.log(n))
+        tempspivotpalog.append(math.log(t_operation))
+
+for n in range(50,500,50):
+        A = np.random.rand(n,n)
+        B = np.random.rand(1,n)
+        t7 = time.time()
+        X = GaussChoixPivotTotal(A,B)
+        t8 = time.time()
+        t_operation = t8 - t7
+        tempspivottot.append(t_operation)
+        indicespivottot.append(n)
+        indicespivottotlog.append(math.log(n))
+        tempspivottotlog.append(math.log(t_operation))
+
+plt.plot(indices, temps, color='red', label="Gauss")
+plt.plot(indicesLU,tempsLU,color='blue', label="LU")
+plt.plot(indicespivotpa, tempspivotpa,color='green', label="Pivot partiel")
+#plt.plot(indicespivottot,tempspivottot,color='pink', label="Pivot total")
+plt.xlabel('taille de la matrice (n)')
+plt.ylabel("temps d'execution (en s)")
+plt.title("Temps d'execution en fonction de la taille de la matrice")
+plt.legend()
+plt.show()     
+
+#plt.plot(indiceslog, tempslog, color='red', label="Gauss")
+#plt.plot(indicesLUlog, tempsLUlog,color='blue', label="LU")
+#plt.plot(indicespivotpalog, tempspivotpalog,color='green', label="Pivot partiel")
+#plt.plot(indicespivottotlog,tempspivottotlog,color='pink', label="Pivot total")
+plt.xlabel('log n')
+plt.ylabel('log t')
+plt.title("Temps d'execution en fonction de la taille de la matrice")
+plt.legend()
+plt.show()   
+
+
+#courbes erreurs
+erreur = []
+indices = []
+erreurLU = []
+indicesLU = []
+erreurpivotpa = []
+indicespivotpa = []
+erreurpivottot = []
+indicespivottot = []
+
+
+for n in range(50,500,50):
+        A= np.random.rand(n,n)
+        B= np.random.rand(n,1)
+        X = Gauss(A,B)
+        e = np.linalg.norm(np.dot(A,X)-np.ravel(B))
+        erreur.append(e)
+        indices.append(n)
+
+for n in range(50,500,50):
+        A= np.random.rand(n,n)
+        B= np.random.rand(n,1)
+        X = ResolutionLU(A,B)
+        print(A)
+        print(X)
+        e1 = np.linalg.norm(np.dot(A,X)-np.ravel(B))
+        erreurLU.append(e1)
+        indicesLU.append(n)
+
+for n in range(50,500,50):
+        A= np.random.rand(n,n)
+        B= np.random.rand(1,n)
+        X = GaussChoixPivotPartiel(A,B)
+        e2 = np.linalg.norm(np.dot(A,X)-np.ravel(B))
+        erreurpivotpa.append(e2)
+        indicespivotpa.append(n)
+
+for n in range(50,500,50):
+        A= np.random.rand(n,n)
+        B= np.random.rand(1,n)
+        X = GaussChoixPivotTotal(A,B)
+        e3 = np.linalg.norm(np.dot(A,X)-np.ravel(B))
+        erreurpivottot.append(e3)
+        indicespivottot.append(n)
+
+
+plt.plot(indices, erreur, color='red', label="Gauss")
+plt.plot(indicesLU,erreurLU,color='blue', label="LU")
+plt.plot(indicespivotpa, erreurpivotpa,color='green', label="Pivot partiel")
+#plt.plot(indicespivottot,erreurpivottot,color='pink', label="Pivot total")  
+plt.xlabel('taille de la matrice (n)')
+plt.ylabel('erreurs')
+plt.title("Estimation de l'erreur commise")
+plt.legend()
+plt.show()
